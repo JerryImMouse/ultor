@@ -1,4 +1,3 @@
-pub mod bot_info;
 pub mod ping;
 
 use serenity::all::{
