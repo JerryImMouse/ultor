@@ -1,4 +1,3 @@
-pub mod bot_info_provider_service;
 pub mod bot_db_service;
 
 use std::any::{Any, TypeId};

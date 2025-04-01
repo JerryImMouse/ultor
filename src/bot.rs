@@ -1,7 +1,6 @@
 pub mod commands;
 
 use crate::bot::commands::{DiscordCommandHandler, DiscordCommandResponse};
-use crate::services::bot_info_provider_service::BotInfoProviderService;
 use crate::services::ServicesContainer;
 use crate::{config::AppConfig, error::Error};
 use log::{debug, error, info};
@@ -22,9 +21,6 @@ pub struct DiscordApp {
 
     handlers_map: BTreeMap<String, Arc<dyn DiscordCommandHandler + Send + Sync>>,
     handlers: Vec<Arc<dyn DiscordCommandHandler + Send + Sync>>,
-
-    // Global services
-    bot_info_provider_service: Arc<BotInfoProviderService>,
 }
 
 #[async_trait]
@@ -92,13 +88,6 @@ impl EventHandler for DiscordApp {
 
             let handler = handler.unwrap();
 
-            // TODO: Hardcode, I should think about refactoring this somehow, Idk how...
-            if handler.definition().name != "bot_info" {
-                self.bot_info_provider_service.inc_commands_processed();
-                self.bot_info_provider_service
-                    .set_last_processed_command_name(handler.definition().name);
-            }
-
             // 2 branches
             // deferred and default
             if handler.definition().is_deferred {
@@ -161,8 +150,6 @@ impl DiscordApp {
             configuration: config,
             handlers: vec![],
             handlers_map: BTreeMap::new(),
-
-            bot_info_provider_service: services.get_unsafe(),
         };
 
         app.construct_commands(command_defs)?;

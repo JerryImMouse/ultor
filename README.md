@@ -1,6 +1,6 @@
 # Ultor
 
-Ultor is a template discord bot in Rust. Provides interface to work with application commands.
+Ultor is a discord bot for Space Station 14 written in Rust.  
+This bot was written specifically for SS14 S.T.A.L.K.E.R, but can be used with other SS14 projects.  
 
-Currently supports Deferred and Default responses.  
-Deferred responses should be used only when default responses is taking too long.
+The main incompatibility of this bot is that it utilizes "TypeAuthD" API to collect authorized users in-game.  

@@ -1,14 +1,12 @@
 use env_logger::Env;
 use log::{debug, info};
 use std::sync::Arc;
-use ultor::bot::commands::bot_info::BotInfo;
 use ultor::bot::commands::ping::PingCommand;
 use ultor::bot::commands::DiscordCommandHandler;
 use ultor::bot::DiscordApp;
 use ultor::config::AppConfig;
 use ultor::error::Error;
 use ultor::services::bot_db_service::BotDatabaseService;
-use ultor::services::bot_info_provider_service::BotInfoProviderService;
 use ultor::services::ServicesContainer;
 
 static APP_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -21,12 +19,12 @@ const OVERRIDE_CONFIG_PATH: Option<&str> = option_env!("CONFIG_PATH");
 fn command_definitions(
     services: &ServicesContainer,
 ) -> Vec<Arc<dyn DiscordCommandHandler + Send + Sync>> {
-    vec![Arc::new(PingCommand), Arc::new(BotInfo::new(services))]
+    vec![
+        Arc::new(PingCommand)
+    ]
 }
 
 async fn initialize_services(config: &AppConfig, services_container: &ServicesContainer) -> Result<(), Error> {
-    services_container.register(BotInfoProviderService::new());
-
     let db_service = BotDatabaseService::new(
         config.database_path().to_string(),
         "./migrations".to_string()
