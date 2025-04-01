@@ -1,0 +1,8 @@
+{
+  "discord": {
+    "token": "TOKEN_HERE",
+    "guilds": [
+      "1126278315364339712"
+    ]
+  }
+}

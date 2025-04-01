@@ -1,0 +1,25 @@
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+pub enum Error {
+    #[error("I/O error: {0}")]
+    IoError(#[from] std::io::Error),
+    #[error("Deserialize error: {0}")]
+    DeserializationError(#[from] serde_json::Error),
+    #[error("Discord bot error: {0}")]
+    BotError(String),
+    #[error("Discord API error: {0}")]
+    SerenityError(#[from] serenity::Error),
+    #[error("Type mismatch error: {0}")]
+    ParseIntError(#[from] std::num::ParseIntError),
+    #[error("Database error: {0}")]
+    DatabaseError(#[from] sqlx::Error),
+    #[error("Migration error: {0}")]
+    MigrationError(#[from] sqlx::migrate::MigrateError),
+}
+
+impl Error {
+    pub fn bot(s: &str) -> Self {
+        Self::BotError(s.to_string())
+    }
+}
