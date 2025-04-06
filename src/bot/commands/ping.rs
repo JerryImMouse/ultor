@@ -7,11 +7,12 @@ pub struct PingCommand;
 #[async_trait]
 impl DiscordCommandHandler for PingCommand {
     fn definition(&self) -> DiscordCommandDefinition {
-        DiscordCommandDefinition::new_global("ping", false)
+        DiscordCommandDefinition::new_global("ping", false, false)
     }
 
     fn registration(&self) -> CreateCommand {
         CreateCommand::new("ping")
+            .name_localized("ru", "пинг")
             .description("Pings the bot.")
             .description_localized("ru", "Пингует бота")
     }

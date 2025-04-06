@@ -1,10 +1,11 @@
-use std::path::PathBuf;
+use crate::error::Error;
 use sqlx::migrate::Migrator;
 use sqlx::sqlite::{SqliteConnectOptions, SqlitePoolOptions};
 use sqlx::SqlitePool;
-use crate::error::Error;
+use std::path::PathBuf;
 #[derive(Debug)]
 pub struct BotDatabaseService {
+    #[allow(dead_code)]
     inner: SqlitePool,
 }
 
@@ -17,17 +18,14 @@ impl BotDatabaseService {
             .create_if_missing(true)
             .filename(database_path);
 
-        let pool = SqlitePoolOptions::new()
-            .connect_lazy_with(options);
+        let pool = SqlitePoolOptions::new().connect_lazy_with(options);
 
         let migrator = Migrator::new(migrations_path).await?;
         migrator.run(&pool).await?;
 
-        Ok(Self {
-            inner: pool,
-        })
+        Ok(Self { inner: pool })
     }
-    
+
     // implement your own methods here
     // if you want to modify database structure -> look at migrations directory at the root of the project
 }

@@ -2,10 +2,13 @@ use env_logger::Env;
 use log::{debug, info};
 use std::sync::Arc;
 use ultor::bot::commands::ping::PingCommand;
+use ultor::bot::commands::summon::SummonCommand;
+use ultor::bot::commands::user_id::UserIdCommand;
 use ultor::bot::commands::DiscordCommandHandler;
 use ultor::bot::DiscordApp;
 use ultor::config::AppConfig;
 use ultor::error::Error;
+use ultor::services::auth_client_service::SS14AuthClientService;
 use ultor::services::bot_db_service::BotDatabaseService;
 use ultor::services::ServicesContainer;
 
@@ -20,17 +23,28 @@ fn command_definitions(
     services: &ServicesContainer,
 ) -> Vec<Arc<dyn DiscordCommandHandler + Send + Sync>> {
     vec![
-        Arc::new(PingCommand)
+        Arc::new(PingCommand),
+        Arc::new(UserIdCommand::new(services)),
+        Arc::new(SummonCommand::new(services)),
     ]
 }
 
-async fn initialize_services(config: &AppConfig, services_container: &ServicesContainer) -> Result<(), Error> {
+async fn initialize_services(
+    config: &AppConfig,
+    services_container: &ServicesContainer,
+) -> Result<(), Error> {
     let db_service = BotDatabaseService::new(
         config.database_path().to_string(),
-        "./migrations".to_string()
-    ).await?;
+        "./migrations".to_string(),
+    )
+    .await?;
 
     services_container.register(db_service);
+    services_container.register(SS14AuthClientService::new(
+        config.discord_auth_uri().to_string(),
+        config.discord_auth_token().to_string(),
+        config.ss14_auth_uri().to_string(),
+    )?);
 
     Ok(())
 }

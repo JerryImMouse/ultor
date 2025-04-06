@@ -4,6 +4,9 @@ use std::fs;
 pub struct AppConfig {
     discord: DiscordSubConfig,
     database_path: String,
+    discord_auth_uri: String,
+    discord_auth_token: String,
+    ss14_auth_uri: String,
 }
 
 #[derive(serde::Deserialize, Debug, Default)]
@@ -62,5 +65,17 @@ impl AppConfig {
     }
     pub fn database_path(&self) -> &str {
         &self.database_path
+    }
+
+    pub fn discord_auth_uri(&self) -> &str {
+        &self.discord_auth_uri
+    }
+
+    pub fn discord_auth_token(&self) -> &str {
+        &self.discord_auth_token
+    }
+
+    pub fn ss14_auth_uri(&self) -> &str {
+        &self.ss14_auth_uri
     }
 }

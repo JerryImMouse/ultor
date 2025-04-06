@@ -1,3 +1,4 @@
+pub mod auth_client_service;
 pub mod bot_db_service;
 
 use std::any::{Any, TypeId};

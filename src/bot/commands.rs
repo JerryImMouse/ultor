@@ -1,10 +1,16 @@
 pub mod ping;
+pub mod summon;
+pub mod user_id;
 
 use serenity::all::{
     Color, CreateCommand, CreateEmbed, CreateEmbedFooter, CreateInteractionResponse,
-    CreateInteractionResponseFollowup, CreateInteractionResponseMessage, ResolvedOption,
+    CreateInteractionResponseFollowup, CreateInteractionResponseMessage, Permissions,
+    ResolvedOption, ResolvedValue,
 };
 use serenity::async_trait;
+
+const MANAGE_WEBHOOKS_SERVER_PERMISSION: Permissions =
+    Permissions::from_bits(0x20 | 0x20000000).unwrap();
 
 #[derive(Debug)]
 pub enum DiscordCommandResponse {
@@ -90,30 +96,47 @@ pub struct DiscordCommandDefinition {
     pub name: &'static str,
     pub is_global: bool,
     pub is_deferred: bool,
+    pub is_ephemeral: bool,
 }
 
 impl DiscordCommandDefinition {
-    pub fn new(name: &'static str, is_global: bool, is_deferred: bool) -> Self {
+    pub fn new(name: &'static str, is_global: bool, is_deferred: bool, is_ephemeral: bool) -> Self {
         Self {
             name,
             is_deferred,
             is_global,
+            is_ephemeral,
         }
     }
 
-    pub fn new_global(name: &'static str, is_deferred: bool) -> Self {
+    pub fn new_global(name: &'static str, is_deferred: bool, is_ephemeral: bool) -> Self {
         Self {
             name,
             is_global: true,
             is_deferred,
+            is_ephemeral,
         }
     }
 
-    pub fn new_local(name: &'static str, is_deferred: bool) -> Self {
+    pub fn new_local(name: &'static str, is_deferred: bool, is_ephemeral: bool) -> Self {
         Self {
             name,
             is_global: false,
             is_deferred,
+            is_ephemeral,
         }
     }
+}
+
+fn opts_get_login(opts: &[ResolvedOption]) -> Option<String> {
+    let mut login: Option<String> = None;
+
+    for option in opts {
+        if let ("login", ResolvedValue::String(val)) = (option.name, &option.value) {
+            login = Some(val.to_string());
+            break;
+        }
+    }
+
+    login
 }

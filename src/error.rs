@@ -16,6 +16,10 @@ pub enum Error {
     DatabaseError(#[from] sqlx::Error),
     #[error("Migration error: {0}")]
     MigrationError(#[from] sqlx::migrate::MigrateError),
+    #[error("Reqwest error: {0}")]
+    ReqwestError(#[from] reqwest::Error),
+    #[error("Invalid uuid error: {0}")]
+    InvalidUuidError(#[from] uuid::Error),
 }
 
 impl Error {

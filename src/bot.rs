@@ -97,7 +97,7 @@ impl EventHandler for DiscordApp {
                         CreateInteractionResponse::Defer(
                             CreateInteractionResponseMessage::new()
                                 .content("Your request is processing...")
-                                .ephemeral(true),
+                                .ephemeral(handler.definition().is_ephemeral),
                         ),
                     )
                     .await
@@ -141,7 +141,7 @@ impl DiscordApp {
     pub fn new(
         config: AppConfig,
         command_defs: Vec<Arc<dyn DiscordCommandHandler + Send + Sync>>,
-        services: &ServicesContainer,
+        _services: &ServicesContainer,
     ) -> Result<Self, crate::error::Error> {
         let mut app = Self {
             registrations: vec![],
