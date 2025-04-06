@@ -68,6 +68,38 @@ impl EventHandler for DiscordApp {
                 cmd.user.name, cmd.data.name
             );
 
+            // check for allowed guilds
+            if let Some(guild_id) = cmd.guild_id {
+                if !self.guilds.contains(&guild_id) {
+                    if let Err(e) = cmd
+                        .create_response(
+                            &ctx.http,
+                            CreateInteractionResponse::Message(
+                                CreateInteractionResponseMessage::new()
+                                    .content("Not allowed at this guild."),
+                            ),
+                        )
+                        .await
+                    {
+                        error!("Error sending followup command: {e}");
+                    }
+                }
+            }
+
+            if cmd.guild_id.is_none() {
+                if let Err(e) = cmd
+                    .create_response(
+                        &ctx.http,
+                        CreateInteractionResponse::Message(
+                            CreateInteractionResponseMessage::new().content("Not allowed in DMs."),
+                        ),
+                    )
+                    .await
+                {
+                    error!("Error sending followup command: {e}");
+                }
+            }
+
             let handler = self.handlers_map.get(&cmd.data.name);
             if handler.is_none() {
                 let result = cmd
