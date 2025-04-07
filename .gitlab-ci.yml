@@ -1,16 +1,32 @@
+stages:
+  - build
+
+variables:
+  DOCKER_IMAGE_NAME: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+  DOCKER_CACHE_IMAGE: $CI_REGISTRY_IMAGE:cache
+  CARGO_HOME: "$CI_PROJECT_DIR/.cargo"  # Local cargo path for caching
+  RUST_TARGET_DIR: "$CI_PROJECT_DIR/target"
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - target/
+    - .cargo/registry/
+    - .cargo/git/
+
 docker-build:
   image: docker:cli
   stage: build
   services:
     - docker:dind
-  variables:
-    DOCKER_IMAGE_NAME: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
-    DOCKER_CACHE_IMAGE: $CI_REGISTRY_IMAGE:cache
   before_script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
     - docker pull "$DOCKER_CACHE_IMAGE" || true
   script:
-    - docker build --pull --cache-from "$DOCKER_CACHE_IMAGE" --tag "$DOCKER_IMAGE_NAME" .
+    - docker build
+      --pull
+      --cache-from "$DOCKER_CACHE_IMAGE"
+      --tag "$DOCKER_IMAGE_NAME" .
     - docker push "$DOCKER_IMAGE_NAME"
     - docker tag "$DOCKER_IMAGE_NAME" "$DOCKER_CACHE_IMAGE"
     - docker push "$DOCKER_CACHE_IMAGE"
