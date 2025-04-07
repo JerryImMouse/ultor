@@ -1,6 +1,7 @@
 pub mod ping;
 pub mod player_info;
 pub mod summon;
+pub mod unlink;
 pub mod user_id;
 
 use serenity::all::{

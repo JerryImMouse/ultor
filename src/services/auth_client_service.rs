@@ -126,4 +126,33 @@ impl SS14AuthClientService {
             _ => Err(crate::error::Error::auth("Error occurred at auth service")),
         }
     }
+
+    pub async fn delete_record(
+        &self,
+        method: String,
+        id: String,
+    ) -> Result<Option<()>, crate::error::Error> {
+        #[derive(serde::Serialize)]
+        struct JsonBody {
+            method: String,
+            id: String,
+        }
+        let body = JsonBody { method, id };
+
+        let result = self
+            .inner
+            .post(format!("{}/api/delete", self.discord_auth_uri))
+            .bearer_auth(self.discord_auth_token.as_str())
+            .form(&body)
+            .send()
+            .await?;
+
+        if result.status() == 200 {
+            Ok(Some(()))
+        } else if result.status() == 404 {
+            Ok(None)
+        } else {
+            Err(crate::error::Error::auth("Error occurred at auth service"))
+        }
+    }
 }

@@ -1,18 +1,12 @@
 use super::*;
-use crate::config::ConfigValue;
 use crate::services::auth_client_service::SS14AuthClientService;
 use crate::services::ss14_database_service::SS14DatabaseService;
 use crate::services::ServicesContainer;
 use crate::utils::{gen_random_color, gen_random_uuid, RED_COLOR};
 use log::error;
 use serde_json::Value;
-use serenity::all::{
-    Color, CommandOptionType, CreateCommand, CreateCommandOption, PartialMember, ResolvedOption,
-    User, UserId,
-};
+use serenity::all::{CommandOptionType, CreateCommand, CreateCommandOption, ResolvedOption};
 use serenity::async_trait;
-use sqlx::types::JsonValue;
-use std::collections::HashMap;
 
 #[derive(Debug)]
 pub struct PlayerInfoCommand {
@@ -56,12 +50,10 @@ impl DiscordCommandHandler for PlayerInfoCommand {
             DiscordCommandResponse::followup_embed_response(reason, None, Some(RED_COLOR), true)
         };
 
-        let user_id = opts
-            .iter()
-            .find_map(|opt| match (&opt.name[..], &opt.value) {
-                ("user", ResolvedValue::User(user, _)) => Some(user.id),
-                _ => None,
-            });
+        let user_id = opts.iter().find_map(|opt| match (opt.name, &opt.value) {
+            ("user", ResolvedValue::User(user, _)) => Some(user.id),
+            _ => None,
+        });
 
         let user_id = match user_id {
             Some(user_id) => user_id,

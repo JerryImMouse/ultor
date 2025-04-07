@@ -4,6 +4,7 @@ use std::sync::Arc;
 use ultor::bot::commands::ping::PingCommand;
 use ultor::bot::commands::player_info::PlayerInfoCommand;
 use ultor::bot::commands::summon::SummonCommand;
+use ultor::bot::commands::unlink::UnLinkCommand;
 use ultor::bot::commands::user_id::UserIdCommand;
 use ultor::bot::commands::DiscordCommandHandler;
 use ultor::bot::DiscordApp;
@@ -30,6 +31,7 @@ fn command_definitions(
         Arc::new(UserIdCommand::new(services)),
         Arc::new(SummonCommand::new(services)),
         Arc::new(PlayerInfoCommand::new(services)),
+        Arc::new(UnLinkCommand::new(services)),
     ]
 }
 

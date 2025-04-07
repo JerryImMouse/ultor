@@ -1,4 +1,4 @@
-use sqlx::{query, PgPool, Row};
+use sqlx::{PgPool, Row};
 use uuid::Uuid;
 
 #[derive(Debug)]
