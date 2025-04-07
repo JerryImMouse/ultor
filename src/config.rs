@@ -1,6 +1,6 @@
+use serde::{Deserialize, Deserializer};
 use std::collections::HashMap;
 use std::fs;
-use serde::{Deserialize, Deserializer};
 
 pub struct ConfigBuilder {
     source: String,
@@ -27,7 +27,6 @@ pub enum ConfigValue {
     Array(Vec<ConfigValue>),
     Object(Box<std::collections::HashMap<String, ConfigValue>>),
 }
-
 
 impl<'de> serde::Deserialize<'de> for ConfigValue {
     fn deserialize<D>(deserializer: D) -> Result<ConfigValue, D::Error>
@@ -129,7 +128,8 @@ macro_rules! config_get {
 #[macro_export]
 macro_rules! config_get_array {
     ($config:expr, $path:expr, $method:ident, $inner_method:ident) => {
-        $config.get_path($path)
+        $config
+            .get_path($path)
             .and_then(|v| v.$method())
             .map(|arr| {
                 arr.iter()
@@ -140,4 +140,3 @@ macro_rules! config_get_array {
 }
 
 pub type Config = ConfigValue;
-

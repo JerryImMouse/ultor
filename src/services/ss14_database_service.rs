@@ -1,7 +1,5 @@
-use std::str::FromStr;
+use sqlx::{query, PgPool, Row};
 use uuid::Uuid;
-use sqlx::{query, Executor, PgPool, Row};
-use sqlx::postgres::PgConnectOptions;
 
 #[derive(Debug)]
 pub struct SS14DatabaseService {
@@ -12,9 +10,7 @@ impl SS14DatabaseService {
     pub fn new(pg_url: String) -> Result<Self, crate::error::Error> {
         let pg_pool = PgPool::connect_lazy(pg_url.as_str())?;
 
-        Ok(Self {
-            inner: pg_pool,
-        })
+        Ok(Self { inner: pg_pool })
     }
 
     pub async fn get_login(&self, user_id: Uuid) -> Result<Option<String>, crate::error::Error> {
@@ -24,7 +20,7 @@ impl SS14DatabaseService {
             .await;
 
         if let Err(sqlx::error::Error::RowNotFound) = row {
-            return Ok(None)
+            return Ok(None);
         }
 
         let row = row?;

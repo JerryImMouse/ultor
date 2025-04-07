@@ -175,7 +175,8 @@ impl DiscordApp {
         command_defs: Vec<Arc<dyn DiscordCommandHandler + Send + Sync>>,
         _services: &ServicesContainer,
     ) -> Result<Self, crate::error::Error> {
-        let guilds: Vec<&str> = config_get_array!(config, "discord.guilds", as_array, as_str).unwrap();
+        let guilds: Vec<&str> =
+            config_get_array!(config, "discord.guilds", as_array, as_str).unwrap();
 
         let mut app = Self {
             registrations: vec![],
@@ -194,11 +195,7 @@ impl DiscordApp {
     }
 
     pub async fn start(self) -> Result<(), Error> {
-        let token = config_get!(
-            self.configuration,
-            "discord.token",
-            as_str
-        ).unwrap();
+        let token = config_get!(self.configuration, "discord.token", as_str).unwrap();
 
         let mut client = Client::builder(token, GatewayIntents::empty())
             .event_handler(self)
@@ -237,7 +234,8 @@ impl DiscordApp {
     }
 
     fn populate_guilds(&mut self) -> Result<(), Error> {
-        let guilds: Vec<&str> = config_get_array!(self.configuration, "discord.guilds", as_array, as_str).unwrap();
+        let guilds: Vec<&str> =
+            config_get_array!(self.configuration, "discord.guilds", as_array, as_str).unwrap();
 
         for guild_id in guilds {
             let guild_id = guild_id.parse::<u64>()?;

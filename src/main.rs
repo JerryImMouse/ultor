@@ -2,18 +2,18 @@ use env_logger::Env;
 use log::{debug, info};
 use std::sync::Arc;
 use ultor::bot::commands::ping::PingCommand;
+use ultor::bot::commands::player_info::PlayerInfoCommand;
 use ultor::bot::commands::summon::SummonCommand;
 use ultor::bot::commands::user_id::UserIdCommand;
 use ultor::bot::commands::DiscordCommandHandler;
-use ultor::bot::commands::player_info::PlayerInfoCommand;
 use ultor::bot::DiscordApp;
 use ultor::config::{Config, ConfigBuilder};
 use ultor::config_get;
 use ultor::error::Error;
 use ultor::services::auth_client_service::SS14AuthClientService;
 use ultor::services::bot_db_service::BotDatabaseService;
-use ultor::services::ServicesContainer;
 use ultor::services::ss14_database_service::SS14DatabaseService;
+use ultor::services::ServicesContainer;
 
 static APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 static DEFAULT_LOG_LEVEL: &str = "debug";
@@ -39,11 +39,8 @@ async fn initialize_services(
 ) -> Result<(), Error> {
     let bot_db_path = config_get!(config, "database.bot_database_path", as_str).unwrap();
 
-    let db_service = BotDatabaseService::new(
-        bot_db_path.to_string(),
-        "./migrations".to_string(),
-    )
-    .await?;
+    let db_service =
+        BotDatabaseService::new(bot_db_path.to_string(), "./migrations".to_string()).await?;
     services_container.register(db_service);
 
     let ss14_db_uri = config_get!(config, "database.ss14_database_url", as_str).unwrap();

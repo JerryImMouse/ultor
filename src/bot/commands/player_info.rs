@@ -1,15 +1,18 @@
-use std::collections::HashMap;
 use super::*;
+use crate::config::ConfigValue;
 use crate::services::auth_client_service::SS14AuthClientService;
+use crate::services::ss14_database_service::SS14DatabaseService;
 use crate::services::ServicesContainer;
+use crate::utils::{gen_random_color, gen_random_uuid, RED_COLOR};
 use log::error;
 use serde_json::Value;
-use serenity::all::{Color, CommandOptionType, CreateCommand, CreateCommandOption, PartialMember, ResolvedOption, User, UserId};
+use serenity::all::{
+    Color, CommandOptionType, CreateCommand, CreateCommandOption, PartialMember, ResolvedOption,
+    User, UserId,
+};
 use serenity::async_trait;
 use sqlx::types::JsonValue;
-use crate::config::ConfigValue;
-use crate::services::ss14_database_service::SS14DatabaseService;
-use crate::utils::{gen_random_color, gen_random_uuid, RED_COLOR};
+use std::collections::HashMap;
 
 #[derive(Debug)]
 pub struct PlayerInfoCommand {
@@ -36,7 +39,10 @@ impl DiscordCommandHandler for PlayerInfoCommand {
         CreateCommand::new("player_info")
             .name_localized("ru", "игрок")
             .description("Fetches player info from all available sources.")
-            .description_localized("ru", "Получает информацию об игрок из всех возможных источников.")
+            .description_localized(
+                "ru",
+                "Получает информацию об игрок из всех возможных источников.",
+            )
             .add_option(CreateCommandOption::new(
                 CommandOptionType::User,
                 "user",
@@ -47,18 +53,15 @@ impl DiscordCommandHandler for PlayerInfoCommand {
 
     async fn handler(&self, opts: &[ResolvedOption]) -> DiscordCommandResponse {
         let not_found = |reason: &str| {
-            DiscordCommandResponse::followup_embed_response(
-                reason,
-                None,
-                Some(RED_COLOR),
-                true,
-            )
+            DiscordCommandResponse::followup_embed_response(reason, None, Some(RED_COLOR), true)
         };
 
-        let user_id = opts.iter().find_map(|opt| match (&opt.name[..], &opt.value) {
-            ("user", ResolvedValue::User(user, _)) => Some(user.id),
-            _ => None,
-        });
+        let user_id = opts
+            .iter()
+            .find_map(|opt| match (&opt.name[..], &opt.value) {
+                ("user", ResolvedValue::User(user, _)) => Some(user.id),
+                _ => None,
+            });
 
         let user_id = match user_id {
             Some(user_id) => user_id,
@@ -89,7 +92,10 @@ impl DiscordCommandHandler for PlayerInfoCommand {
             Ok(None) => return not_found("❔ User has no known in-game login."),
             Err(e) => {
                 let err_id = gen_random_uuid();
-                error!("{}. Failed to get login by Discord ID. Error: {}", err_id, e);
+                error!(
+                    "{}. Failed to get login by Discord ID. Error: {}",
+                    err_id, e
+                );
                 return DiscordCommandResponse::followup_embed_response(
                     "❌ An error occurred while fetching login.",
                     Some(&err_id.to_string()),
@@ -103,7 +109,10 @@ impl DiscordCommandHandler for PlayerInfoCommand {
             Ok(extra_data) => extra_data,
             Err(e) => {
                 let err_id = gen_random_uuid();
-                error!("{}. Failed to get extra data by Discord ID. Error: {}", err_id, e);
+                error!(
+                    "{}. Failed to get extra data by Discord ID. Error: {}",
+                    err_id, e
+                );
                 return DiscordCommandResponse::followup_embed_response(
                     "❌ An error occurred while fetching extra data.",
                     Some(&err_id.to_string()),
@@ -114,7 +123,10 @@ impl DiscordCommandHandler for PlayerInfoCommand {
         };
 
         DiscordCommandResponse::followup_embed_response(
-            &format!("🧑‍🚀 **In-Game Login:** `{}`\n🧾 **Extra Data:** \n{}", in_game_login, extra_data),
+            &format!(
+                "🧑‍🚀 **In-Game Login:** `{}`\n🧾 **Extra Data:** \n{}",
+                in_game_login, extra_data
+            ),
             None,
             Some(gen_random_color()),
             true,
@@ -124,7 +136,7 @@ impl DiscordCommandHandler for PlayerInfoCommand {
 
 async fn format_extra_data(
     discord_id: &str,
-    ss14_client: &std::sync::Arc<SS14AuthClientService>
+    ss14_client: &std::sync::Arc<SS14AuthClientService>,
 ) -> Result<String, crate::error::Error> {
     let capitalize_key = |key: &str| {
         key.split('_')

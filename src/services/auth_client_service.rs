@@ -1,6 +1,6 @@
 use serde::Deserialize;
-use std::time::Duration;
 use serde_json::Value;
+use std::time::Duration;
 use uuid::Uuid;
 
 static REQWEST_TIMEOUT: u64 = 10;
@@ -76,7 +76,10 @@ impl SS14AuthClientService {
         Ok(Some(body.id))
     }
 
-    pub async fn get_user_id_from_discord(&self, discord_id: String) -> Result<Option<Uuid>, crate::error::Error> {
+    pub async fn get_user_id_from_discord(
+        &self,
+        discord_id: String,
+    ) -> Result<Option<Uuid>, crate::error::Error> {
         #[derive(Deserialize)]
         struct JsonResponseBody {
             #[serde(rename = "uuid")]
@@ -97,11 +100,14 @@ impl SS14AuthClientService {
                 let body = result.json::<JsonResponseBody>().await?;
                 Ok(Some(body.user_id.parse::<Uuid>()?))
             }
-            _ => Err(crate::error::Error::auth("Error occurred at auth service"))
+            _ => Err(crate::error::Error::auth("Error occurred at auth service")),
         }
     }
 
-    pub async fn get_extra_data(&self, discord_id: String) -> Result<Option<Value>, crate::error::Error> {
+    pub async fn get_extra_data(
+        &self,
+        discord_id: String,
+    ) -> Result<Option<Value>, crate::error::Error> {
         let result = self
             .inner
             .get(format!("{}/api/extra", self.discord_auth_uri))
@@ -117,7 +123,7 @@ impl SS14AuthClientService {
 
                 Ok(Some(body))
             }
-            _ => Err(crate::error::Error::auth("Error occurred at auth service"))
+            _ => Err(crate::error::Error::auth("Error occurred at auth service")),
         }
     }
 }
