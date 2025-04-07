@@ -5,12 +5,15 @@ use ultor::bot::commands::ping::PingCommand;
 use ultor::bot::commands::summon::SummonCommand;
 use ultor::bot::commands::user_id::UserIdCommand;
 use ultor::bot::commands::DiscordCommandHandler;
+use ultor::bot::commands::player_info::PlayerInfoCommand;
 use ultor::bot::DiscordApp;
-use ultor::config::AppConfig;
+use ultor::config::{Config, ConfigBuilder};
+use ultor::config_get;
 use ultor::error::Error;
 use ultor::services::auth_client_service::SS14AuthClientService;
 use ultor::services::bot_db_service::BotDatabaseService;
 use ultor::services::ServicesContainer;
+use ultor::services::ss14_database_service::SS14DatabaseService;
 
 static APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 static DEFAULT_LOG_LEVEL: &str = "debug";
@@ -26,24 +29,33 @@ fn command_definitions(
         Arc::new(PingCommand),
         Arc::new(UserIdCommand::new(services)),
         Arc::new(SummonCommand::new(services)),
+        Arc::new(PlayerInfoCommand::new(services)),
     ]
 }
 
 async fn initialize_services(
-    config: &AppConfig,
+    config: &Config,
     services_container: &ServicesContainer,
 ) -> Result<(), Error> {
+    let bot_db_path = config_get!(config, "database.bot_database_path", as_str).unwrap();
+
     let db_service = BotDatabaseService::new(
-        config.database_path().to_string(),
+        bot_db_path.to_string(),
         "./migrations".to_string(),
     )
     .await?;
-
     services_container.register(db_service);
+
+    let ss14_db_uri = config_get!(config, "database.ss14_database_url", as_str).unwrap();
+    services_container.register(SS14DatabaseService::new(ss14_db_uri.to_string())?);
+
+    let discord_auth_uri = config_get!(config, "auth.discord_auth_uri", as_str).unwrap();
+    let discord_auth_token = config_get!(config, "auth.discord_auth_token", as_str).unwrap();
+    let ss14_auth_uri = config_get!(config, "auth.ss14_auth_uri", as_str).unwrap();
     services_container.register(SS14AuthClientService::new(
-        config.discord_auth_uri().to_string(),
-        config.discord_auth_token().to_string(),
-        config.ss14_auth_uri().to_string(),
+        discord_auth_uri.to_string(),
+        discord_auth_token.to_string(),
+        ss14_auth_uri.to_string(),
     )?);
 
     Ok(())
@@ -57,7 +69,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     env_logger::init_from_env(env);
 
-    let (config, cfg_path): (AppConfig, String) = {
+    let (config, cfg_path): (Config, String) = {
         let primary_path = if cfg!(debug_assertions)
             && std::fs::exists(DEFAULT_DEV_CONFIG_PATH).unwrap()
             && OVERRIDE_CONFIG_PATH.is_none()
@@ -71,9 +83,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             DEFAULT_CONFIG_PATH
         };
 
-        match AppConfig::from_file(primary_path, true) {
+        match ConfigBuilder::new(primary_path.to_string()).build() {
             Ok(config) => Ok((config, primary_path.to_string())),
-            Err(_) => AppConfig::from_file(DEFAULT_CONFIG_PATH, true)
+            Err(_) => ConfigBuilder::new(DEFAULT_CONFIG_PATH.to_string())
+                .build()
                 .map(|v| (v, primary_path.to_string())),
         }
     }?;

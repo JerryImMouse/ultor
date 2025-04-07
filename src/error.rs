@@ -20,10 +20,15 @@ pub enum Error {
     ReqwestError(#[from] reqwest::Error),
     #[error("Invalid uuid error: {0}")]
     InvalidUuidError(#[from] uuid::Error),
+    #[error("TypeAuthD Error: {0}")]
+    TypeAuthdError(String),
 }
 
 impl Error {
     pub fn bot(s: &str) -> Self {
         Self::BotError(s.to_string())
+    }
+    pub fn auth(s: &str) -> Self {
+        Self::TypeAuthdError(s.to_string())
     }
 }

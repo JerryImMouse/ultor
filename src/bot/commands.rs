@@ -1,6 +1,7 @@
 pub mod ping;
 pub mod summon;
 pub mod user_id;
+pub mod player_info;
 
 use serenity::all::{
     Color, CreateCommand, CreateEmbed, CreateEmbedFooter, CreateInteractionResponse,

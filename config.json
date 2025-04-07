@@ -5,8 +5,13 @@
       "1126278315364339712"
     ]
   },
-  "database_path": "./ultor.db",
-  "discord_auth_uri": "http://localhost:2424",
-  "discord_auth_token": "key",
-  "ss14_auth_uri": "https://auth.spacestation14.com"
+  "database": {
+    "bot_database_path": "./ultor.db",
+    "ss14_database_url": ""
+  },
+  "auth": {
+    "discord_auth_uri": "http://localhost:2424",
+    "discord_auth_token": "key",
+    "ss14_auth_uri": "https://auth.spacestation14.com"
+  }
 }

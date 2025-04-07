@@ -1,81 +1,143 @@
+use std::collections::HashMap;
 use std::fs;
+use serde::{Deserialize, Deserializer};
 
-#[derive(serde::Deserialize, Debug, Default)]
-pub struct AppConfig {
-    discord: DiscordSubConfig,
-    database_path: String,
-    discord_auth_uri: String,
-    discord_auth_token: String,
-    ss14_auth_uri: String,
+pub struct ConfigBuilder {
+    source: String,
 }
 
-#[derive(serde::Deserialize, Debug, Default)]
-pub struct DiscordSubConfig {
-    token: Option<String>,
-    guilds: Option<Vec<String>>,
-}
+impl ConfigBuilder {
+    pub fn new(source: String) -> Self {
+        Self { source }
+    }
 
-impl AppConfig {
-    pub fn from_file(path: &str, with_env: bool) -> Result<Self, crate::error::Error> {
-        let bytes = fs::read(path)?;
-        let mut config = serde_json::from_slice::<AppConfig>(&bytes)?;
-
-        if config.discord.guilds.is_none() {
-            config.discord.guilds = Some(vec![]);
-        }
-
-        if with_env {
-            config = config.with_env();
-        }
-
-        if config.discord.guilds.as_ref().unwrap().is_empty() {
-            return Err(crate::error::Error::bot("No guilds supplied."));
-        }
-
+    pub fn build(self) -> Result<Config, crate::error::Error> {
+        let content = fs::read_to_string(&self.source)?;
+        let config: Config = serde_json::from_str(&content)?;
         Ok(config)
     }
+}
 
-    pub fn with_env(mut self) -> Self {
-        let guilds = self.discord.guilds.as_mut().unwrap();
+#[derive(Debug)]
+pub enum ConfigValue {
+    Int(i32),
+    Float(f64),
+    Bool(bool),
+    String(String),
+    Array(Vec<ConfigValue>),
+    Object(Box<std::collections::HashMap<String, ConfigValue>>),
+}
 
-        if self.discord.token.is_none() {
-            let token = std::env::var("DISCORD_TOKEN");
-            if let Ok(token) = token {
-                self.discord.token = Some(token);
-            }
+
+impl<'de> serde::Deserialize<'de> for ConfigValue {
+    fn deserialize<D>(deserializer: D) -> Result<ConfigValue, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        #[serde(untagged)]
+        enum Value {
+            Int(i32),
+            Float(f64),
+            Bool(bool),
+            String(String),
+            Array(Vec<ConfigValue>),
+            Object(HashMap<String, ConfigValue>),
         }
 
-        if guilds.is_empty() {
-            let guild = std::env::var("DISCORD_GUILD");
-            if let Ok(guild) = guild {
-                guilds.push(guild);
-            }
+        match Value::deserialize(deserializer)? {
+            Value::Int(i) => Ok(ConfigValue::Int(i)),
+            Value::Float(f) => Ok(ConfigValue::Float(f)),
+            Value::Bool(b) => Ok(ConfigValue::Bool(b)),
+            Value::String(s) => Ok(ConfigValue::String(s)),
+            Value::Array(arr) => Ok(ConfigValue::Array(arr)),
+            Value::Object(map) => Ok(ConfigValue::Object(Box::new(map))),
         }
-
-        self
-    }
-
-    // getters
-    pub fn discord_token(&self) -> Option<&str> {
-        self.discord.token.as_deref()
-    }
-
-    pub fn discord_guilds(&self) -> &[String] {
-        self.discord.guilds.as_ref().unwrap()
-    }
-    pub fn database_path(&self) -> &str {
-        &self.database_path
-    }
-
-    pub fn discord_auth_uri(&self) -> &str {
-        &self.discord_auth_uri
-    }
-
-    pub fn discord_auth_token(&self) -> &str {
-        &self.discord_auth_token
-    }
-
-    pub fn ss14_auth_uri(&self) -> &str {
-        &self.ss14_auth_uri
     }
 }
+
+impl ConfigValue {
+    pub fn as_int(&self) -> Option<i32> {
+        if let ConfigValue::Int(i) = self {
+            Some(*i)
+        } else {
+            None
+        }
+    }
+
+    pub fn as_float(&self) -> Option<f64> {
+        if let ConfigValue::Float(f) = self {
+            Some(*f)
+        } else {
+            None
+        }
+    }
+
+    pub fn as_str(&self) -> Option<&str> {
+        if let ConfigValue::String(s) = self {
+            Some(s)
+        } else {
+            None
+        }
+    }
+
+    pub fn as_bool(&self) -> Option<bool> {
+        if let ConfigValue::Bool(b) = self {
+            Some(*b)
+        } else {
+            None
+        }
+    }
+
+    pub fn as_array(&self) -> Option<&Vec<ConfigValue>> {
+        if let ConfigValue::Array(arr) = self {
+            Some(arr)
+        } else {
+            None
+        }
+    }
+
+    pub fn as_object(&self) -> Option<&HashMap<String, ConfigValue>> {
+        if let ConfigValue::Object(obj) = self {
+            Some(obj)
+        } else {
+            None
+        }
+    }
+
+    pub fn get_path(&self, path: &str) -> Option<&ConfigValue> {
+        let mut current = self;
+        for segment in path.split('.') {
+            match current {
+                ConfigValue::Object(map) => {
+                    current = map.get(segment)?;
+                }
+                _ => return None,
+            }
+        }
+        Some(current)
+    }
+}
+
+#[macro_export]
+macro_rules! config_get {
+    ($config:expr, $path:expr, $method:ident) => {
+        $config.get_path($path).and_then(|v| v.$method())
+    };
+}
+
+#[macro_export]
+macro_rules! config_get_array {
+    ($config:expr, $path:expr, $method:ident, $inner_method:ident) => {
+        $config.get_path($path)
+            .and_then(|v| v.$method())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|item| item.$inner_method())
+                    .collect::<Vec<_>>()
+            })
+    };
+}
+
+pub type Config = ConfigValue;
+

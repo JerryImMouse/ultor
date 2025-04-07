@@ -2,7 +2,7 @@ pub mod commands;
 
 use crate::bot::commands::{DiscordCommandHandler, DiscordCommandResponse};
 use crate::services::ServicesContainer;
-use crate::{config::AppConfig, error::Error};
+use crate::{config::Config, config_get, config_get_array, error::Error};
 use log::{debug, error, info};
 use serenity::all::{
     Command, CreateCommand, CreateInteractionResponse, CreateInteractionResponseMessage, GuildId,
@@ -14,7 +14,7 @@ use std::collections::BTreeMap;
 use std::sync::Arc;
 
 pub struct DiscordApp {
-    configuration: AppConfig,
+    configuration: Config,
     registrations: Vec<CreateCommand>,
     global_registrations: Vec<CreateCommand>,
     guilds: Vec<GuildId>,
@@ -171,14 +171,16 @@ impl EventHandler for DiscordApp {
 
 impl DiscordApp {
     pub fn new(
-        config: AppConfig,
+        config: Config,
         command_defs: Vec<Arc<dyn DiscordCommandHandler + Send + Sync>>,
         _services: &ServicesContainer,
     ) -> Result<Self, crate::error::Error> {
+        let guilds: Vec<&str> = config_get_array!(config, "discord.guilds", as_array, as_str).unwrap();
+
         let mut app = Self {
             registrations: vec![],
             global_registrations: vec![],
-            guilds: Vec::with_capacity(config.discord_guilds().len()),
+            guilds: Vec::with_capacity(guilds.len()),
             configuration: config,
             handlers: vec![],
             handlers_map: BTreeMap::new(),
@@ -192,10 +194,11 @@ impl DiscordApp {
     }
 
     pub async fn start(self) -> Result<(), Error> {
-        let token = self
-            .configuration
-            .discord_token()
-            .ok_or_else(|| Error::bot("Discord token is empty"))?;
+        let token = config_get!(
+            self.configuration,
+            "discord.token",
+            as_str
+        ).unwrap();
 
         let mut client = Client::builder(token, GatewayIntents::empty())
             .event_handler(self)
@@ -234,7 +237,9 @@ impl DiscordApp {
     }
 
     fn populate_guilds(&mut self) -> Result<(), Error> {
-        for guild_id in self.configuration.discord_guilds() {
+        let guilds: Vec<&str> = config_get_array!(self.configuration, "discord.guilds", as_array, as_str).unwrap();
+
+        for guild_id in guilds {
             let guild_id = guild_id.parse::<u64>()?;
             let guild_id = GuildId::from(guild_id);
             self.guilds.push(guild_id);
