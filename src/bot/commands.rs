@@ -3,6 +3,7 @@ pub mod player_info;
 pub mod summon;
 pub mod unlink;
 pub mod user_id;
+pub mod femboy;
 
 use serenity::all::{
     Color, CreateCommand, CreateEmbed, CreateEmbedFooter, CreateInteractionResponse,
