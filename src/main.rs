@@ -1,20 +1,27 @@
 use env_logger::Env;
 use log::{debug, info};
 use std::sync::Arc;
-use ultor::bot::commands::ping::PingCommand;
-use ultor::bot::commands::player_info::PlayerInfoCommand;
-use ultor::bot::commands::summon::SummonCommand;
-use ultor::bot::commands::unlink::UnLinkCommand;
-use ultor::bot::commands::user_id::UserIdCommand;
-use ultor::bot::commands::DiscordCommandHandler;
-use ultor::bot::DiscordApp;
-use ultor::config::{Config, ConfigBuilder};
-use ultor::config_get;
-use ultor::error::Error;
-use ultor::services::auth_client_service::SS14AuthClientService;
-use ultor::services::bot_db_service::BotDatabaseService;
-use ultor::services::ss14_database_service::SS14DatabaseService;
-use ultor::services::ServicesContainer;
+use ultor::{
+    bot::commands::{
+        unlink::UnLinkCommand,
+        summon::SummonCommand,
+        player_info::PlayerInfoCommand,
+        ping::PingCommand,
+        user_id::UserIdCommand,
+        DiscordCommandHandler,
+        femboy::FemboyCommand
+    },
+    bot::DiscordApp,
+    config::{Config, ConfigBuilder},
+    config_get,
+    error::Error,
+    services::{
+        auth_client_service::SS14AuthClientService,
+        bot_db_service::BotDatabaseService,
+        ss14_database_service::SS14DatabaseService,
+        ServicesContainer
+    }
+};
 
 static APP_VERSION: &str = env!("CARGO_PKG_VERSION");
 static DEFAULT_LOG_LEVEL: &str = "debug";
@@ -28,6 +35,7 @@ fn command_definitions(
 ) -> Vec<Arc<dyn DiscordCommandHandler + Send + Sync>> {
     vec![
         Arc::new(PingCommand),
+        Arc::new(FemboyCommand),
         Arc::new(UserIdCommand::new(services)),
         Arc::new(SummonCommand::new(services)),
         Arc::new(PlayerInfoCommand::new(services)),
