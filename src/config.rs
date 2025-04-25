@@ -1,6 +1,9 @@
 use serde::{Deserialize, Deserializer};
 use std::collections::HashMap;
 use std::fs;
+use std::sync::OnceLock;
+
+pub static CONFIG: OnceLock<ConfigValue> = OnceLock::new();
 
 pub struct ConfigBuilder {
     source: String,
@@ -11,10 +14,14 @@ impl ConfigBuilder {
         Self { source }
     }
 
-    pub fn build(self) -> Result<Config, crate::error::Error> {
+    pub fn init(self) -> Result<(), Box<dyn std::error::Error>> {
         let content = fs::read_to_string(&self.source)?;
-        let config: Config = serde_json::from_str(&content)?;
-        Ok(config)
+        let config: ConfigValue = serde_json::from_str(&content)?;
+
+        CONFIG.set(config)
+            .map_err(|_| "Config already initialized")?;
+
+        Ok(())
     }
 }
 
@@ -120,16 +127,20 @@ impl ConfigValue {
 
 #[macro_export]
 macro_rules! config_get {
-    ($config:expr, $path:expr, $method:ident) => {
-        $config.get_path($path).and_then(|v| v.$method())
+    ($path:expr, $method:ident) => {
+        $crate::CONFIG
+            .get()
+            .and_then(|cfg| cfg.get_path($path))
+            .and_then(|v| v.$method())
     };
 }
 
 #[macro_export]
 macro_rules! config_get_array {
-    ($config:expr, $path:expr, $method:ident, $inner_method:ident) => {
-        $config
-            .get_path($path)
+    ($path:expr, $method:ident, $inner_method:ident) => {
+        $crate::CONFIG
+            .get()
+            .and_then(|cfg| cfg.get_path($path))
             .and_then(|v| v.$method())
             .map(|arr| {
                 arr.iter()

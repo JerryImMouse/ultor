@@ -86,7 +86,7 @@ macro_rules! extract_discord_arg {
             _ => None,
         })
     };
-    
+
     // ResolvedValue::*
     (
         $opts:expr,
