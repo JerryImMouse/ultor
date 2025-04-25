@@ -16,9 +16,9 @@ use ultor::{
     config_get,
     error::Error,
     services::{
-        auth_client_service::SS14AuthClientService,
-        bot_db_service::BotDatabaseService,
-        ss14_database_service::SS14DatabaseService,
+        SS14AuthClientService,
+        BotDatabaseService,
+        SS14DatabaseService,
         ServicesContainer
     }
 };

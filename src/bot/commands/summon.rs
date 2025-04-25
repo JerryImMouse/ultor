@@ -1,11 +1,9 @@
 use super::*;
-use crate::services::auth_client_service::SS14AuthClientService;
-use crate::services::ServicesContainer;
-use crate::utils::{gen_random_uuid, RED_COLOR};
-use log::error;
+use crate::services::{SS14AuthClientService, ServicesContainer};
 use serenity::all::CommandOptionType;
 use serenity::async_trait;
 use serenity::builder::CreateCommandOption;
+use crate::try_discord_unwrap;
 
 #[derive(Debug)]
 pub struct SummonCommand {
@@ -39,63 +37,27 @@ impl DiscordCommandHandler for SummonCommand {
     }
 
     async fn handler(&self, opts: &[ResolvedOption]) -> DiscordCommandResponse {
-        let login = match opts_get_login(opts) {
-            Some(l) => l,
-            None => {
-                return DiscordCommandResponse::followup_embed_response(
-                    "Login is not specified",
-                    None,
-                    Some(RED_COLOR),
-                    true,
-                )
-            }
-        };
+        let login = try_discord_unwrap!(
+            opts_get_login(opts),
+            none => "Login is not specified",
+            ephemeral => false
+        );
 
-        let user_id_result = self.ss14_client.get_user_id(login).await;
-        let user_id = match user_id_result {
-            Ok(Some(user_id)) => user_id,
-            Ok(None) => {
-                return DiscordCommandResponse::followup_embed_response(
-                    "Login is not specified",
-                    None,
-                    Some(RED_COLOR),
-                    true,
-                )
-            }
-            Err(e) => {
-                let uuid = gen_random_uuid();
-                error!("{}. Failed to get user ID: {}", uuid, e);
-                return DiscordCommandResponse::followup_embed_response(
-                    &format!("Error occurred during UID fetch.\nError ID: `{}`", uuid),
-                    None,
-                    Some(RED_COLOR),
-                    true,
-                );
-            }
-        };
+        let user_id = try_discord_unwrap!(
+            self.ss14_client.get_user_id(login).await,
+            none => "Login is not specified",
+            error => "Error occurred during UID fetch.",
+            log => "Failed to get user ID.",
+            ephemeral => false
+        );
 
-        let discord_id_result = self.ss14_client.get_discord_id(user_id).await;
-        let discord_id = match discord_id_result {
-            Ok(Some(discord_id)) => discord_id,
-            Ok(None) => {
-                return DiscordCommandResponse::followup_embed_response(
-                    "This account is not linked.",
-                    None,
-                    Some(RED_COLOR),
-                    true,
-                )
-            }
-            Err(e) => {
-                let uuid = gen_random_uuid();
-                error!("{}. Failed to get discord ID: {}", uuid, e);
-                return DiscordCommandResponse::followup_embed_response(
-                    &format!("Error occurred during DUID fetch.\nError ID: `{}`", uuid),
-                    None,
-                    Some(RED_COLOR),
-                    true,
-                );
-            }
-        };
+        let discord_id = try_discord_unwrap!(
+            self.ss14_client.get_discord_id(user_id).await,
+            none => "This account is not linked.",
+            error => "Error occurred during DUID fetch.",
+            log => "Failed to get user ID.",
+            ephemeral => false
+        );
 
         DiscordCommandResponse::followup_response(&format!("<@{}>", discord_id), false)
     }

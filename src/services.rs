@@ -1,6 +1,10 @@
-pub mod auth_client_service;
-pub mod bot_db_service;
-pub mod ss14_database_service;
+mod auth_client_service;
+mod bot_db_service;
+mod ss14_database_service;
+
+pub use auth_client_service::*;
+pub use bot_db_service::*;
+pub use ss14_database_service::*;
 
 use std::any::{Any, TypeId};
 use std::collections::HashMap;

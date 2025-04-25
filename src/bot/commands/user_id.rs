@@ -1,9 +1,9 @@
 use super::*;
-use crate::services::auth_client_service::SS14AuthClientService;
-use crate::services::ServicesContainer;
+use crate::services::{SS14AuthClientService, ServicesContainer};
 use log::error;
 use serenity::all::{Color, CommandOptionType, CreateCommand, CreateCommandOption, ResolvedOption};
 use serenity::async_trait;
+use crate::{extract_discord_arg, try_discord_unwrap};
 
 #[derive(Debug)]
 pub struct UserIdCommand {
@@ -37,17 +37,11 @@ impl DiscordCommandHandler for UserIdCommand {
     }
 
     async fn handler(&self, opts: &[ResolvedOption]) -> DiscordCommandResponse {
-        let mut login = match opts_get_login(opts) {
-            Some(l) => l,
-            None => {
-                return DiscordCommandResponse::followup_embed_response(
-                    "Login is not specified",
-                    None,
-                    Some(Color::from_rgb(255, 0, 0)),
-                    true,
-                )
-            }
-        };
+        let mut login = try_discord_unwrap!(
+            extract_discord_arg!(opts, "login", String),
+            none => "Login is not specified",
+            ephemeral => false
+        );
 
         let found = self.ss14_client.get_user_id(login).await;
         match found {
