@@ -1,11 +1,16 @@
 use super::*;
-use crate::services::auth_client_service::SS14AuthClientService;
-use crate::services::ServicesContainer;
+use crate::services::{
+    SS14AuthClientService,
+    ServicesContainer
+};
 use crate::utils::gen_random_uuid;
+
 use log::error;
-use serenity::all::CommandOptionType;
-use serenity::async_trait;
-use serenity::builder::CreateCommandOption;
+use serenity::all::{
+    CommandOptionType,
+    CreateCommandOption
+};
+use crate::extract_discord_arg;
 
 #[derive(Debug)]
 pub struct UnLinkCommand {
@@ -20,7 +25,7 @@ impl UnLinkCommand {
     }
 }
 
-#[async_trait]
+#[serenity::async_trait]
 impl DiscordCommandHandler for UnLinkCommand {
     fn definition(&self) -> DiscordCommandDefinition {
         DiscordCommandDefinition::new_global("unlink", true, true)
@@ -53,16 +58,8 @@ impl DiscordCommandHandler for UnLinkCommand {
     }
 
     async fn handler(&self, opts: &[ResolvedOption]) -> DiscordCommandResponse {
-        let mut id_type: Option<String> = None;
-        let mut id: Option<String> = None;
-
-        for opt in opts {
-            match (opt.name, &opt.value) {
-                ("type", ResolvedValue::String(t)) => id_type = Some(t.to_string()),
-                ("id", ResolvedValue::String(t)) => id = Some(t.to_string()),
-                _ => {}
-            }
-        }
+        let id_type = extract_discord_arg!(opts,"type",String);
+        let id = extract_discord_arg!(opts,"id",String);
 
         if id_type.is_none() || id.is_none() {
             return DiscordCommandResponse::followup_response(
