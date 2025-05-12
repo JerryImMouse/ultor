@@ -137,7 +137,7 @@ impl DiscordCommandHandler for LinkCommand {
         let command =
             try_discord_unwrap!(command, none => "No command supplied", ephemeral => true);
 
-        let response = match command {
+        match command {
             LinkSubCommand::Discord { command } => match command {
                 LinkDiscordSubCommand::Status(u) => {
                     let user_id = u.id;
@@ -278,9 +278,7 @@ impl DiscordCommandHandler for LinkCommand {
                     }
                 }
             },
-        };
-
-        response
+        }
     }
 }
 
@@ -301,19 +299,19 @@ enum LinkSS14SubCommand {
 
 fn map_command(opts: &[ResolvedOption]) -> Option<LinkSubCommand> {
     for group in opts {
-        let (group_name, group_opts) = match (&group.name[..], &group.value) {
+        let (group_name, group_opts) = match (group.name, &group.value) {
             ("discord", ResolvedValue::SubCommandGroup(opts)) => ("discord", opts),
             ("ss14", ResolvedValue::SubCommandGroup(opts)) => ("ss14", opts),
             _ => continue,
         };
 
-        let sub = group_opts.get(0)?;
-        let (sub_name, sub_opts) = match (&sub.name[..], &sub.value) {
+        let sub = group_opts.first()?;
+        let (sub_name, sub_opts) = match (sub.name, &sub.value) {
             (name, ResolvedValue::SubCommand(opts)) => (name, opts),
             _ => continue,
         };
 
-        let arg = sub_opts.get(0);
+        let arg = sub_opts.first();
 
         let command = match (group_name, sub_name) {
             // DISCORD

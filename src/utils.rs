@@ -21,10 +21,10 @@ macro_rules! try_discord_unwrap {
     ($opt:expr, none => $none_msg:expr, $(ephemeral => $ephemeral:expr)? ) => {{
         match $opt {
             Some(v) => v,
-            None => return crate::bot::commands::DiscordCommandResponse::followup_embed_response(
+            None => return $crate::bot::commands::DiscordCommandResponse::followup_embed_response(
                 $none_msg,
                 None,
-                Some(crate::utils::RED_COLOR),
+                Some($crate::utils::RED_COLOR),
                 try_discord_unwrap!(@ephemeral $($ephemeral)?),
             ),
         }
@@ -35,12 +35,12 @@ macro_rules! try_discord_unwrap {
         match $res {
             Ok(v) => v,
             Err(e) => {
-                let err_id = crate::utils::gen_random_uuid();
+                let err_id = $crate::utils::gen_random_uuid();
                 log::error!("{}. {}. Error: {}", err_id, $log_msg, e);
-                return crate::bot::commands::DiscordCommandResponse::followup_embed_response(
+                return $crate::bot::commands::DiscordCommandResponse::followup_embed_response(
                     $err_msg,
                     Some(&err_id.to_string()),
-                    Some(crate::utils::RED_COLOR),
+                    Some($crate::utils::RED_COLOR),
                     try_discord_unwrap!(@ephemeral $($ephemeral)?),
                 );
             }
@@ -51,19 +51,19 @@ macro_rules! try_discord_unwrap {
     ($resopt:expr, none => $none_msg:expr, error => $err_msg:expr, log => $log_msg:expr, $(ephemeral => $ephemeral:expr)? ) => {{
         match $resopt {
             Ok(Some(v)) => v,
-            Ok(None) => return crate::bot::commands::DiscordCommandResponse::followup_embed_response(
+            Ok(None) => return $crate::bot::commands::DiscordCommandResponse::followup_embed_response(
                 $none_msg,
                 None,
-                Some(crate::utils::RED_COLOR),
+                Some($crate::utils::RED_COLOR),
                 try_discord_unwrap!(@ephemeral $($ephemeral)?),
             ),
             Err(e) => {
-                let err_id = crate::utils::gen_random_uuid();
+                let err_id = $crate::utils::gen_random_uuid();
                 log::error!("{}. {}. Error: {}", err_id, $log_msg, e);
-                return crate::bot::commands::DiscordCommandResponse::followup_embed_response(
+                return $crate::bot::commands::DiscordCommandResponse::followup_embed_response(
                     $err_msg,
                     Some(&err_id.to_string()),
-                    Some(crate::utils::RED_COLOR),
+                    Some($crate::utils::RED_COLOR),
                     try_discord_unwrap!(@ephemeral $($ephemeral)?),
                 );
             }

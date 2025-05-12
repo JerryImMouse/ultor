@@ -43,7 +43,6 @@ pub fn command_definitions(
         Arc::new(FemboyCommand),
         Arc::new(UserIdCommand::new(services)),
         Arc::new(SummonCommand::new(services)),
-        Arc::new(PlayerInfoCommand::new(services)),
         Arc::new(LinkCommand::new(services)),
     ]
 }
