@@ -1,9 +1,9 @@
 use super::*;
 use crate::services::{SS14AuthClientService, ServicesContainer};
+use crate::{extract_discord_arg, try_discord_unwrap};
 use log::error;
 use serenity::all::{Color, CommandOptionType, CreateCommand, CreateCommandOption, ResolvedOption};
 use serenity::async_trait;
-use crate::{extract_discord_arg, try_discord_unwrap};
 
 #[derive(Debug)]
 pub struct UserIdCommand {

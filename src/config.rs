@@ -18,7 +18,8 @@ impl ConfigBuilder {
         let content = fs::read_to_string(&self.source)?;
         let config: ConfigValue = serde_json::from_str(&content)?;
 
-        CONFIG.set(config)
+        CONFIG
+            .set(config)
             .map_err(|_| "Config already initialized")?;
 
         Ok(())

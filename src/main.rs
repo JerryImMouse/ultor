@@ -32,7 +32,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             Err(_) => {
                 ultor::ConfigBuilder::new(DEFAULT_CONFIG_PATH.to_string()).init()?;
                 primary_path.to_string()
-            },
+            }
         }
     };
 

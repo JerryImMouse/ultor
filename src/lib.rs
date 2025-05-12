@@ -35,15 +35,14 @@ pub async fn initialize_services(container: &services::ServicesContainer) -> Res
 pub fn command_definitions(
     services: &services::ServicesContainer,
 ) -> Vec<std::sync::Arc<dyn bot::commands::DiscordCommandHandler + Send + Sync>> {
-    use std::sync::Arc;
     use bot::commands::*;
+    use std::sync::Arc;
 
     vec![
         Arc::new(PingCommand),
         Arc::new(FemboyCommand),
         Arc::new(UserIdCommand::new(services)),
         Arc::new(SummonCommand::new(services)),
-        Arc::new(PlayerInfoCommand::new(services)),
-        Arc::new(UnLinkCommand::new(services)),
+        Arc::new(LinkCommand::new(services)),
     ]
 }
