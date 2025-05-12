@@ -1,17 +1,8 @@
 use super::*;
-use crate::services::{
-    SS14AuthClientService,
-    SS14DatabaseService,
-    ServicesContainer,
-};
-use serenity::all::{
-    CommandOptionType,
-    CreateCommand,
-    CreateCommandOption,
-    ResolvedOption
-};
-use crate::utils::gen_random_color;
+use crate::services::{SS14AuthClientService, SS14DatabaseService, ServicesContainer};
 use crate::try_discord_unwrap;
+use crate::utils::{format_extra_data, gen_random_color};
+use serenity::all::{CommandOptionType, CreateCommand, CreateCommandOption, ResolvedOption};
 
 #[derive(Debug)]
 pub struct PlayerInfoCommand {
@@ -92,53 +83,5 @@ impl DiscordCommandHandler for PlayerInfoCommand {
             Some(gen_random_color()),
             true,
         )
-    }
-}
-
-async fn format_extra_data(
-    discord_id: &str,
-    ss14_client: &std::sync::Arc<SS14AuthClientService>,
-) -> Result<String, crate::error::Error> {
-    use serde_json::Value;
-
-    let capitalize_key = |key: &str| {
-        key.split('_')
-            .map(|part| {
-                let mut c = part.chars();
-                match c.next() {
-                    Some(first) => first.to_uppercase().chain(c).collect(),
-                    None => String::new(),
-                }
-            })
-            .collect::<Vec<String>>()
-            .join(" ")
-    };
-
-    let value = ss14_client.get_extra_data(discord_id.to_string()).await?;
-
-    match value {
-        Some(value) => {
-            let obj = value.as_object().unwrap();
-            let mut result = String::new();
-
-            for (k, v) in obj {
-                match v {
-                    Value::String(s) => {
-                        result.push_str(&format!("{}: {}\n", capitalize_key(k), s));
-                    }
-                    Value::Number(n) if n.is_i64() || n.is_u64() => {
-                        result.push_str(&format!("{}: {}\n", capitalize_key(k), n));
-                    }
-                    _ => {}
-                }
-            }
-
-            if result.is_empty() {
-                Ok("No extra data found.".to_string())
-            } else {
-                Ok(result)
-            }
-        }
-        None => Ok("No extra data found.".to_string()),
     }
 }

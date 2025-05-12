@@ -1,16 +1,16 @@
+pub mod femboy;
+pub mod link;
 pub mod ping;
 pub mod player_info;
 pub mod summon;
-pub mod unlink;
 pub mod user_id;
-pub mod femboy;
 
+pub use femboy::FemboyCommand;
+pub use link::LinkCommand;
 pub use ping::PingCommand;
 pub use player_info::PlayerInfoCommand;
 pub use summon::SummonCommand;
-pub use unlink::UnLinkCommand;
 pub use user_id::UserIdCommand;
-pub use femboy::FemboyCommand;
 
 use serenity::all::{
     Color, CreateCommand, CreateEmbed, CreateEmbedFooter, CreateInteractionResponse,

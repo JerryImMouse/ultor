@@ -1,6 +1,6 @@
 pub mod commands;
 
-
+use crate::bot::commands::{DiscordCommandHandler, DiscordCommandResponse};
 use crate::services::ServicesContainer;
 use crate::{config_get, config_get_array, error::Error};
 use log::{debug, error, info};
@@ -12,7 +12,6 @@ use serenity::async_trait;
 use serenity::prelude::*;
 use std::collections::BTreeMap;
 use std::sync::Arc;
-use crate::bot::commands::{DiscordCommandHandler, DiscordCommandResponse};
 
 pub struct DiscordApp {
     registrations: Vec<CreateCommand>,
@@ -174,8 +173,7 @@ impl DiscordApp {
         command_defs: Vec<Arc<dyn DiscordCommandHandler + Send + Sync>>,
         _services: &ServicesContainer,
     ) -> Result<Self, crate::error::Error> {
-        let guilds: Vec<&str> =
-            config_get_array!("discord.guilds", as_array, as_str).unwrap();
+        let guilds: Vec<&str> = config_get_array!("discord.guilds", as_array, as_str).unwrap();
 
         let mut app = Self {
             registrations: vec![],
@@ -232,8 +230,7 @@ impl DiscordApp {
     }
 
     fn populate_guilds(&mut self) -> Result<(), Error> {
-        let guilds: Vec<&str> =
-            config_get_array!("discord.guilds", as_array, as_str).unwrap();
+        let guilds: Vec<&str> = config_get_array!("discord.guilds", as_array, as_str).unwrap();
 
         for guild_id in guilds {
             let guild_id = guild_id.parse::<u64>()?;

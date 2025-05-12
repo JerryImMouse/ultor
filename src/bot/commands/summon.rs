@@ -1,9 +1,9 @@
 use super::*;
 use crate::services::{SS14AuthClientService, ServicesContainer};
+use crate::try_discord_unwrap;
 use serenity::all::CommandOptionType;
 use serenity::async_trait;
 use serenity::builder::CreateCommandOption;
-use crate::try_discord_unwrap;
 
 #[derive(Debug)]
 pub struct SummonCommand {
