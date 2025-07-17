@@ -44,5 +44,5 @@ You are free to use, modify, and redistribute with proper attribution.
 ## 📎 GitLab Repository
 
 > For latest updates, issues, and contributions, visit the primary repository:  
-> [https://gitlab.com/your-org/your-repo](https://gitlab.com/JerryImMouse/ultor)
+> [https://gitlab.com/JerryImMouse/ultor](https://gitlab.com/JerryImMouse/ultor)
 
